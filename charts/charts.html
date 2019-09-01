@@ -1,0 +1,59 @@
+<html>
+<body>
+<div id="graph_container" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
+<script type="text/javascript" src="http://localhost:3000/socket.io/socket.io.js"></script>
+<script src="http://code.jquery.com/jquery-latest.js"></script>
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/modules/exporting.js"></script>
+<script>
+$(function() {
+  Highcharts.setOptions({
+      global: {
+          useUTC: false
+      }
+  });
+ 
+  var graph = new Highcharts.Chart({
+      title: { text: 'Real Time Samples' },
+      xAxis: {
+          type: 'datetime',
+          tickPixelInterval: 100
+      },
+      yAxis: {
+          title: { text: 'Samples' },
+          tickInterval: 10,
+         // min: 0,
+         // max: 100
+      },
+      tooltip: {
+            formatter: function() {
+                return '<b>'+ this.series.name + '</b><br/>'
+                    + '[ ' + Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x)
+                    + ' , '
+                    + this.y + ' ]';
+            }
+      },
+      chart: {
+          type: 'doughnut',
+          renderTo: 'graph_container',
+          events: {
+              load: function() {
+                  var series = this.series[0];
+                  var socket = io.connect('http://localhost:3000');
+                  socket.on('chart_data', function (sample) {
+                    //add chart data to series
+                     series.addPoint([sample.x * 1000, sample.y], true, false);
+                  });
+              }
+          }
+      },
+        series: [{
+            name: 'Random data',
+            data: []
+        }]
+  });
+ 
+});
+</script>
+</body>
+</html>
